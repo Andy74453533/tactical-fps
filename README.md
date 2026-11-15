@@ -1,5 +1,11 @@
 # DUSKLINE
 
+[![make.fun · threejs-fps-02](https://make.fun/badge/threejs-fps-02.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![rank](https://make.fun/badge/threejs-fps-02/Andy74453533/tactical-fps/rank.svg)](https://make.fun/bounty/threejs-fps-02/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![reward](https://make.fun/badge/threejs-fps-02/Andy74453533/tactical-fps/reward.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+
+Entry for the [threejs-fps-02 bounty on make.fun](https://make.fun/bounty/threejs-fps-02).
+
 A complete round-based tactical FPS in three.js, built for the make.fun
 threejs-fps-02 competition. Five attackers (you + four bots) against five
 defender bots on Relay K-7, a desert relay station at dusk. Plant the
