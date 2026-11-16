@@ -1,7 +1,5 @@
-// One palette for the whole game: dusk over a desert relay station. Warm sand
-// and terracotta for the map, amber for Vanguard, teal for Aegis, one hot
-// accent for the charge and warnings. Every material and every HUD colour
-// comes from here so the scene reads at a glance.
+// One palette for the whole game: dusk over a desert relay station. Warm
+// sand for the map, amber for Vanguard, teal for Aegis, one hot accent.
 export const PALETTE = {
   sky: '#1d2733',
   horizon: '#e8824a',
