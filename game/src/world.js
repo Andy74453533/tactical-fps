@@ -1,8 +1,6 @@
 // Relay K-7: an original three-lane map. Vanguard spawns south, Aegis north;
-// Site A sits west, Site B east, and a connector building with a mid window
-// joins the lanes. The map is data first: boxes become meshes and colliders,
-// and a hand-placed waypoint graph drives the bots. One level, no ladders, so
-// bot movement stays reliable and every fight is about angles, not climbing.
+// Site A west, Site B east, a connector building with a mid window joining
+// the lanes. Boxes become meshes and colliders; a waypoint graph drives bots.
 import * as THREE from 'three';
 import { PALETTE, TEAM } from './palette.js';
 import {
@@ -40,8 +38,7 @@ export const SPAWNS = {
 };
 
 // Waypoint graph: nodes the bots walk between, edges they may use. Every
-// lane, doorway and site is on the graph; bots pathfind with breadth-first
-// search over these edges.
+// lane, doorway and site is on the graph.
 export const NAV_NODES = [
   { x: 0, z: 18 }, { x: -8, z: 16 }, { x: 8, z: 16 },
   { x: -14, z: 13 }, { x: 14, z: 13 }, { x: -19, z: 8 }, { x: 19, z: 8 },
