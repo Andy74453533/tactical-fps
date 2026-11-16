@@ -1,7 +1,5 @@
-// Pooled effects: tracers, sparks, blood, smoke and explosions. Every pool is
-// allocated once at boot and reused; the hot loop never creates an object.
-// Tracers are line segments, everything else is a sprite that scales and
-// fades over its life.
+// Pooled effects: tracers, sparks, blood, smoke and explosions. Every pool
+// is allocated once at boot and reused; the hot loop never creates objects.
 import * as THREE from 'three';
 import { PALETTE } from './palette.js';
 
