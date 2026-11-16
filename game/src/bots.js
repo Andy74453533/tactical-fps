@@ -89,6 +89,8 @@ export function createBot(actor, role, skill, index) {
     detour: null,
     repathAt: 0,
     investigate: null,
+    planSite: null,
+    planDest: null,
     reset() {
       bot.state = 'move';
       bot.path = [];
@@ -177,9 +179,12 @@ function objectiveDestination(state, actor, bot) {
       if (d < 14) return { x: bomb.x, z: bomb.z };
     }
     if (bomb.carrier === actor) {
-      const site = state.world.sites[bot.role === 'rushB' ? 'B' : 'A'];
+      const site = state.world.sites[bot.planSite || 'A'];
       return { x: site.center.x, z: site.center.z };
     }
+    // The round plan overrides the role push: executes send everyone to one
+    // site, mid sends the escorts to mid, split falls back to roles.
+    if (bot.planDest) return bot.planDest;
     if (bot.role === 'rushA') return { x: -20, z: -13 };
     if (bot.role === 'rushB') return { x: 20, z: -13 };
     return { x: 0, z: -11 };
@@ -215,7 +220,7 @@ function think(state, actor, bot, dt) {
 
   // Objective channels.
   if (actor.team === TEAM.VANGUARD && bomb.carrier === actor && bomb.state === 'carried') {
-    const site = state.world.sites[bot.role === 'rushB' ? 'B' : 'A'];
+    const site = state.world.sites[bot.planSite || (bot.role === 'rushB' ? 'B' : 'A')];
     const inSite = actor.position.x >= site.minX && actor.position.x <= site.maxX
       && actor.position.z >= site.minZ && actor.position.z <= site.maxZ;
     if (inSite && !bot.target && state.time - bot.lastKnownAt > 1.2) {
