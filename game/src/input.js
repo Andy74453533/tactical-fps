@@ -1,6 +1,5 @@
-// Input: pointer lock for the mouse, a key set, and edge-triggered actions.
-// The game reads this once per fixed step; nothing here knows about rounds,
-// weapons or menus — it only reports what the player's hands are doing.
+// Input: pointer lock, a key set, and edge-triggered actions. It only
+// reports what the player's hands are doing; nothing here knows the game.
 export function createInput(canvas) {
   const keys = new Set();
   const pressed = new Set();
@@ -65,7 +64,6 @@ export function createInput(canvas) {
     get aiming() { return aiming; },
     isDown(code) { return keys.has(code); },
     wasPressed(code) { return pressed.has(code); },
-    wasReleased(code) { return released.has(code); },
     consumeMouse() {
       const dx = mouseDX;
       const dy = mouseDY;
