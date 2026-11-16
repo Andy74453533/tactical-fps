@@ -43,13 +43,19 @@ is synthesised with WebAudio.
 - **Bots:** nine bots with roles (site rushes, holds, mid), waypoint-graph
   pathfinding, sight cones, hearing, reaction times, aim error that shrinks
   while stationary, burst fire, strafing, objective play (plant, defuse,
-  rotate, pick up a dropped charge) and simple buy logic.
+  rotate, pick up a dropped charge) and simple buy logic. Each round the
+  attackers draw a plan from the seeded stream — split push, full execute on
+  Site A or B, or mid control — and the round banner names it, so no two
+  rounds play the same.
 - **Map:** Relay K-7 — three lanes, a connector building, a mid window wall,
   containers, crates, sandbags and a silo, all with collision, shadows and a
   dusk sky.
 - **HUD:** health/armour bars, money, ammo, grenades, round timer, team
-  scores, bomb status, kill feed, dynamic crosshair, hitmarkers, damage
-  direction, plant/defuse progress, buy menu, scoreboard, spectating.
+  scores, round-history pips, bomb status, kill feed, dynamic crosshair,
+  hitmarkers, damage direction, plant/defuse progress, buy menu, scoreboard,
+  spectating — plus a minimap drawn from the map's own collision data,
+  showing teammates, your facing, and the charge when it is dropped or
+  planted (enemies are never shown).
 
 ## Controls
 
@@ -76,6 +82,7 @@ G throw · E plant/defuse · B buy · Tab scoreboard · P pause.
 | `bots.js` | Perception, pathfinding, combat, objectives |
 | `rounds.js` | Round/match machine, economy, bomb rules |
 | `hud.js` | All DOM: HUD, buy menu, scoreboard, banners |
+| `minimap.js` | Minimap: static map layer + live teammates/charge |
 | `input.js` | Pointer lock, keys, edge-triggered actions |
 | `main.js` | Boot, fixed-step loop, player, camera, screenshots |
 
