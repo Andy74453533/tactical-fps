@@ -1,7 +1,6 @@
-// Sound, synthesised: every effect is an oscillator or filtered noise burst
-// shaped by an envelope, so the game ships no audio files. Distance and
-// direction are faked with gain and stereo pan relative to the listener,
-// which is the player's head.
+// Sound, synthesised: oscillators and filtered noise bursts shaped by
+// envelopes, so the game ships no audio files. Distance and direction are
+// faked with gain and stereo pan relative to the player's head.
 export function createAudio() {
   let ctx = null;
   let master = null;
