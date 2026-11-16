@@ -1,6 +1,5 @@
-// Every tuning number in one place: weapons, economy, round rules, movement
-// and bot skill. The simulation reads only this file for numbers, so balance
-// changes never touch game logic.
+// Every tuning number in one place. The simulation reads only this file for
+// numbers, so balance changes never touch game logic.
 import { TEAM } from './palette.js';
 
 export const CONFIG = {
@@ -63,9 +62,8 @@ export const CONFIG = {
   },
 };
 
-// Weapons: damage is the chest shot at close range; falloff starts at
-// falloffStart and reaches falloffMin at falloffEnd. Spread is in radians of
-// cone half-angle; moving, jumping and sustained fire all widen it.
+// Weapons: damage is the chest shot at close range; falloff runs from
+// falloffStart to falloffMin at falloffEnd. Spread is a cone half-angle.
 export const WEAPONS = {
   p9: {
     id: 'p9',
