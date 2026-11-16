@@ -59,6 +59,13 @@ function pickCarrier(state) {
 
 export function startRound(state) {
   state.round += 1;
+  // Team plan for this round, drawn from the seeded stream: the bots push
+  // together instead of every bot always running its own role. Split keeps
+  // the old behaviour; the executes send the whole team at one site; mid
+  // takes mid control first and the carrier then hits the plan site.
+  const roll = state.rng.next();
+  state.plan = roll < 0.45 ? 'split' : roll < 0.65 ? 'rushA' : roll < 0.85 ? 'rushB' : 'mid';
+  state.planSite = state.plan === 'rushB' ? 'B' : state.plan === 'rushA' ? 'A' : state.rng.chance(0.5) ? 'A' : 'B';
   state.phase = PHASE.FREEZE;
   state.phaseTime = 0;
   state.freezeLeft = CONFIG.match.freezeTime;
@@ -97,8 +104,20 @@ export function startRound(state) {
     actor.loadout.cooldown = 0;
     actor.loadout.bloom = 0;
     if (!actor.isPlayer) botBuy(state, actor);
+    if (actor.bot && actor.team === TEAM.VANGUARD) {
+      actor.bot.planSite = state.planSite;
+      const site = state.world.sites[state.planSite];
+      actor.bot.planDest = state.plan === 'rushA' || state.plan === 'rushB'
+        ? { x: site.center.x, z: site.center.z }
+        : state.plan === 'mid' && actor !== state.bomb.carrier ? { x: 0, z: -11 } : null;
+    }
   }
-  pushEvent(state, { type: 'roundStart', round: state.round, carrier: state.bomb.carrier });
+  const planLabel = state.plan === 'split' ? 'split push on both sites'
+    : state.plan === 'mid' ? `mid control, then Site ${state.planSite}`
+    : `full execute on Site ${state.planSite}`;
+  pushEvent(state, {
+    type: 'roundStart', round: state.round, carrier: state.bomb.carrier, planLabel,
+  });
 }
 
 function botBuy(state, actor) {
@@ -173,6 +192,7 @@ function awardRound(state, winner, reason) {
   state.winner = winner;
   state.winReason = reason;
   state.scores[winner] += 1;
+  state.roundHistory.push(winner === TEAM.VANGUARD ? 'V' : 'A');
   const loser = winner === TEAM.VANGUARD ? TEAM.AEGIS : TEAM.VANGUARD;
   state.lossStreak[loser] += 1;
   state.lossStreak[winner] = 0;
