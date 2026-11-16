@@ -1,16 +1,13 @@
-// Bots. Each bot has a role (which site to attack or hold), a skill draw, and
-// a small state machine: move along the waypoint graph, hold an angle,
-// engage what it sees, investigate what it hears, and work the objective.
-// Perception is line of sight through the map's boxes plus a hearing radius;
-// aim error shrinks while the bot stands still, so bots that stop to shoot
-// are dangerous and bots on the run are not.
+// Bots: role, skill draw, and a small state machine — move along the
+// waypoint graph, hold an angle, engage what they see, investigate what
+// they hear, work the objective. Aim error shrinks while standing still.
 import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { TEAM } from './palette.js';
 import { segmentBlocked, segmentSmoked, angleDelta, distance2D } from './physics.js';
 import { slideMove } from './physics.js';
 import { eyePosition, currentWeapon } from './actors.js';
-import { fireHitscan, currentSpread, stepLoadout } from './weapons.js';
+import { fireHitscan, stepLoadout } from './weapons.js';
 import { pushEvent } from './state.js';
 
 const _eye = new THREE.Vector3();
@@ -33,8 +30,8 @@ export function nearestNode(nodes, x, z) {
   return best;
 }
 
-// Breadth-first search over the waypoint graph. Returns node indices from
-// start to goal, excluding start, or [] when already there.
+// Breadth-first search over the waypoint graph: node indices from start to
+// goal, excluding start, or [] when already there.
 export function findPath(adjacency, start, goal) {
   if (start === goal) return [];
   const prev = new Int16Array(adjacency.length).fill(-1);
@@ -251,8 +248,8 @@ function think(state, actor, bot, dt) {
     dest = objectiveDestination(state, actor, bot);
   }
   if (bot.state !== 'hold') bot.state = bot.target ? 'engage' : 'move';
-  // A detour overrides the objective until reached or expired: it is how a
-  // bot unwedges itself from a crate corner instead of pushing forever.
+  // A detour overrides the objective until reached or expired: it unwedges
+  // a bot from a crate corner instead of pushing forever.
   if (bot.detour) {
     if (state.time > bot.detour.until
       || distance2D(actor.position.x, actor.position.z, bot.detour.x, bot.detour.z) < 1.5) {
@@ -317,8 +314,7 @@ function moveAlongPath(state, actor, bot, dt) {
   actor.velocity.x = (mx / len) * speed;
   actor.velocity.z = (mz / len) * speed;
   actor.yaw += angleDelta(actor.yaw, Math.atan2(-mx, -mz)) * Math.min(1, dt * 8);
-  // Stuck: no progress while pushing — route via a nearby waypoint instead
-  // of re-planning the same blocked line.
+  // Stuck: no progress while pushing — route via a nearby waypoint.
   if (Math.hypot(actor.position.x - bot.stuckX, actor.position.z - bot.stuckZ) < 0.25) {
     if (state.time - bot.stuckAt > 1.2) {
       bot.stuckAt = state.time;
@@ -456,6 +452,13 @@ export function stepBots(state, dt, hitList) {
     actor.height = height;
     actor.eye += ((actor.crouching ? CONFIG.player.crouchEye : CONFIG.player.standEye) - actor.eye) * Math.min(1, dt * 12);
     actor.onGround = slideMove(actor.position, actor.velocity, dt, CONFIG.player.radius, height, state.colliders);
+    // Audible footsteps while moving: the player hears bots coming, and the
+    // 'step' event is audio-only, so bot hearing is unchanged.
+    const hSpeed = Math.hypot(actor.velocity.x, actor.velocity.z);
+    if (hSpeed > 1 && actor.onGround && (bot.stepAt = (bot.stepAt || 0) + dt) > 0.36) {
+      bot.stepAt = 0;
+      pushEvent(state, { type: 'step', x: actor.position.x, z: actor.position.z });
+    }
     // Reload when the magazine runs dry out of danger.
     const weapon = currentWeapon(actor.loadout);
     if (weapon.mag === 0 && weapon.reserve > 0 && actor.loadout.reloadLeft === 0) {
