@@ -50,12 +50,17 @@ is synthesised with WebAudio.
 - **Map:** Relay K-7 — three lanes, a connector building, a mid window wall,
   containers, crates, sandbags and a silo, all with collision, shadows and a
   dusk sky.
-- **HUD:** health/armour bars, money, ammo, grenades, round timer, team
-  scores, round-history pips, bomb status, kill feed, dynamic crosshair,
-  hitmarkers, damage direction, plant/defuse progress, buy menu, scoreboard,
-  spectating — plus a minimap drawn from the map's own collision data,
-  showing teammates, your facing, and the charge when it is dropped or
-  planted (enemies are never shown).
+- **HUD:** health/armour bars, money, ammo with a low-ammo warning, grenades,
+  round timer, team scores, round-history pips, bomb status, kill feed,
+  dynamic crosshair, hitmarkers, floating damage numbers, damage direction,
+  plant/defuse progress, buy menu, scoreboard, spectating — plus a minimap
+  drawn from the map's own collision data, showing teammates (with an amber
+  ring on the one carrying the charge), your facing, and the charge when it
+  is dropped or planted (enemies are never shown).
+- **Sound:** every effect synthesised with WebAudio — no audio files. Shots
+  and explosions carry distance and stereo pan, hits play a hit tone, and
+  footsteps are audible and distance-attenuated, so you hear enemies
+  approaching. The planted charge beeps faster as its fuse runs down.
 
 ## Controls
 
