@@ -1,8 +1,6 @@
-// Gunfire. One hitscan path serves the player and the bots: a ray from the
-// muzzle against the world's surfaces and every actor's hit meshes, nearest
-// valid hit wins, damage falls off with distance and multiplies on the head.
-// The view model is procedural geometry per weapon, with kick, bob, reload
-// dip and a muzzle flash, all driven from the same weapon state.
+// Gunfire. One hitscan path serves player and bots: a ray from the muzzle
+// against world surfaces and actor hit meshes, nearest valid hit wins.
+// The view model is procedural geometry per weapon, driven by weapon state.
 import * as THREE from 'three';
 import { WEAPONS, weaponDamageAt } from './config.js';
 import { PALETTE } from './palette.js';
@@ -28,8 +26,8 @@ function perturbDirection(dir, spread, rng, out) {
   return out;
 }
 
-// Fires one trigger pull (all pellets). Returns the hits for effects. The
-// caller owns ammo, cooldown, recoil and sound; this owns the ray.
+// Fires one trigger pull (all pellets). The caller owns ammo, cooldown,
+// recoil and sound; this owns the ray.
 export function fireHitscan(state, hitList, shooter, origin, dir, def, spread) {
   const hits = [];
   raycaster.far = def.range;
@@ -38,7 +36,6 @@ export function fireHitscan(state, hitList, shooter, origin, dir, def, spread) {
     raycaster.set(origin, perturbed);
     const found = raycaster.intersectObjects(hitList, false);
     let end = null;
-    let endDistance = def.range;
     for (const hit of found) {
       const actor = hit.object.userData.actor;
       if (actor) {
@@ -46,7 +43,6 @@ export function fireHitscan(state, hitList, shooter, origin, dir, def, spread) {
         if (actor.team === shooter.team) {
           // No friendly fire: a teammate's body stops the bullet harmlessly.
           end = hit.point;
-          endDistance = hit.distance;
           break;
         }
         const part = hit.object.userData.part;
@@ -55,11 +51,9 @@ export function fireHitscan(state, hitList, shooter, origin, dir, def, spread) {
         damageActor(state, actor, damage, part, shooter);
         hits.push({ actor, part, distance: hit.distance, point: hit.point.clone(), damage });
         end = hit.point;
-        endDistance = hit.distance;
         break;
       }
       end = hit.point;
-      endDistance = hit.distance;
       pushEvent(state, { type: 'spark', x: hit.point.x, y: hit.point.y, z: hit.point.z });
       break;
     }
@@ -72,14 +66,12 @@ export function fireHitscan(state, hitList, shooter, origin, dir, def, spread) {
       toX: end.x, toY: end.y, toZ: end.z,
       team: shooter.team,
     });
-    void endDistance;
   }
   return hits;
 }
 
-// Spread now: still base, plus movement, plus bloom from sustained fire,
-// plus an airborne penalty. Standing still and tapping beats running and
-// holding the trigger, which is the whole point of the gunplay.
+// Spread now: still base, plus movement, plus bloom, plus an airborne
+// penalty. Standing still and tapping beats running and holding the trigger.
 export function currentSpread(def, speed, airborne, crouching, bloom) {
   let spread = def.spreadStill + bloom;
   spread += Math.min(1, speed / 5.2) * def.spreadMove;
@@ -177,8 +169,7 @@ export function createViewModel(camera) {
   root.position.set(0.22, -0.18, -0.42);
   root.scale.setScalar(0.72);
   camera.add(root);
-  // A small warm fill so the gun reads as gunmetal, not a black slab: the
-  // scene has no environment map, so bare metal would go nearly black.
+  // A small warm fill so the gun reads as gunmetal, not a black slab.
   const fillLight = new THREE.PointLight(new THREE.Color('#ffd9a0'), 1.4, 2.5);
   fillLight.position.set(0.1, 0.15, 0.1);
   root.add(fillLight);
