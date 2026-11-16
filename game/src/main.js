@@ -1,7 +1,5 @@
 // DUSKLINE: boot, the fixed-step loop, the player's body and camera, event
-// routing to HUD/audio/particles, menus, and the deterministic screenshot
-// modes. The simulation runs at 60 Hz in stepSimulation; rendering follows
-// the display. Everything the judge or a player sees comes through here.
+// routing to HUD/audio/particles, menus, and deterministic screenshot modes.
 import * as THREE from 'three';
 import { CONFIG, WEAPONS } from './config.js';
 import { TEAM } from './palette.js';
@@ -236,8 +234,10 @@ function stepPlayer(dt) {
   const speed = player.crouching ? CONFIG.player.crouchSpeed : sneaking ? CONFIG.player.sneakSpeed : CONFIG.player.walkSpeed;
   const sin = Math.sin(player.yaw);
   const cos = Math.cos(player.yaw);
-  const dirX = wishX * cos - wishZ * sin;
-  const dirZ = -wishX * sin - wishZ * cos;
+  // World-space wish direction: view forward is (-sin yaw, -cos yaw), so W
+  // (wishZ -1) moves along the view, and D (wishX +1) strafes right.
+  const dirX = wishX * cos + wishZ * sin;
+  const dirZ = -wishX * sin + wishZ * cos;
   const len = Math.hypot(dirX, dirZ);
   const accel = player.onGround ? CONFIG.player.groundAccel : CONFIG.player.airAccel;
   if (len > 0) {
@@ -269,6 +269,7 @@ function stepPlayer(dt) {
     if (player.stepAt > interval) {
       player.stepAt = 0;
       pushEvent(state, { type: 'noise', x: player.position.x, z: player.position.z, radius: sneaking ? 4 : 11, time: state.time });
+      pushEvent(state, { type: 'step', x: player.position.x, z: player.position.z });
     }
   }
 
@@ -374,6 +375,9 @@ function handleEvents() {
       case 'noise':
         state.noise.push(event);
         break;
+      case 'step':
+        audio.footstep(event.x, event.z, player);
+        break;
       case 'shot':
         if (!event.actor.isPlayer) {
           audio.shot(event.x, event.z, player, event.weapon);
@@ -392,7 +396,11 @@ function handleEvents() {
       case 'hit': {
         const victim = event.victim;
         particles.spawnBlood(victim.position.x, victim.position.y + 1.1, victim.position.z, state.rng);
-        if (event.attacker === player) hud.showHitmarker(event.part === 'head');
+        if (event.attacker === player) {
+          hud.showHitmarker(event.part === 'head');
+          hud.showDamage(event.damage, event.part === 'head');
+          audio.hit(event.part === 'head');
+        }
         if (victim === player) {
           audio.hurt();
           if (event.attacker) {
@@ -406,7 +414,10 @@ function handleEvents() {
       }
       case 'kill': {
         hud.addKill(event.attacker, event.victim, event.part === 'head', event.isExplosion);
-        if (event.attacker === player) audio.kill();
+        if (event.attacker === player) {
+          audio.kill();
+          hud.showDamage(event.damage, event.part === 'head');
+        }
         if (event.victim === player) hud.setCenterMessage('You were eliminated — spectating a teammate');
         break;
       }
@@ -495,10 +506,8 @@ function updateCamera(dt) {
   const targetFov = zoomed ? weapon.def.zoomFov : 75;
   camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
   camera.updateProjectionMatrix();
-  // First person hides the body the camera sits in: the player's own mesh
-  // while alive, the spectated teammate's mesh while spectating. Corpses
-  // stay visible. (Hidden meshes still block bullets — raycasts ignore
-  // visibility — so hiding changes nothing about combat.)
+  // Hide the body the camera sits in (player, or spectated teammate).
+  // Hidden meshes still block bullets: raycasts ignore visibility.
   for (const actor of state.actors) actor.mesh.visible = true;
   if (player.alive) player.mesh.visible = false;
   if (focus !== player) focus.mesh.visible = false;
@@ -700,9 +709,8 @@ function setupShot(mode) {
     viewModel.setWeapon('ar4');
     player.loadout.armor = CONFIG.player.armor;
     player.armor = CONFIG.player.armor;
-    // A-lane standoff: the player looks up the lane at two defenders with a
-    // teammate beside them. God-mode during setup so the frame is the fight,
-    // not the spectate screen.
+    // A-lane standoff: the player faces two defenders, a teammate beside
+    // them. God-mode during setup so the frame is the fight.
     player.position.set(-19, 0, 3);
     player.yaw = 0.11;
     player.pitch = 0;
