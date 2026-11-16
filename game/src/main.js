@@ -178,6 +178,9 @@ function fullResetMatch() {
   state.lossStreak[TEAM.VANGUARD] = 0;
   state.lossStreak[TEAM.AEGIS] = 0;
   state.round = 0;
+  state.roundHistory = [];
+  state.plan = 'split';
+  state.planSite = 'A';
   state.stats = { shotsFired: 0, shotsHit: 0, headshots: 0 };
   for (const actor of state.actors) {
     actor.money = CONFIG.match.startMoney;
@@ -425,7 +428,7 @@ function handleEvents() {
         particles.spawnSmokePuff(event.x, event.y, event.z, 4.5, state.rng);
         break;
       case 'roundStart':
-        hud.showBanner(`ROUND ${event.round}`, event.carrier ? `${event.carrier.name} carries the charge` : '', 'round', 2.5);
+        hud.showBanner(`ROUND ${event.round}`, event.carrier ? `${event.carrier.name} carries the charge — ${event.planLabel}` : '', 'round', 2.5);
         hud.setCenterMessage('');
         break;
       case 'roundLive':
