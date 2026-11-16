@@ -1,7 +1,6 @@
 // Minimap: a top-down view drawn from the world's own data, so it can never
-// disagree with the map. Walls, site zones and spawns are painted once onto
-// an offscreen canvas; each frame the live layer adds teammates, the facing
-// wedge of the viewed actor and the charge when it is on the ground.
+// disagree with the map. Walls, sites and spawns are painted once; each
+// frame the live layer adds teammates, the facing wedge and the charge.
 // Enemies are never shown: the map informs, it does not wallhack.
 import { MAP_BOUNDS } from './world.js';
 import { TEAM_COLOR } from './palette.js';
@@ -59,6 +58,14 @@ export function createMinimap(canvas) {
       ctx.beginPath();
       ctx.arc(px(actor.position.x), py(actor.position.z), 3, 0, Math.PI * 2);
       ctx.fill();
+      // The teammate carrying the charge gets an amber ring: the carrier is
+      // always a teammate, so this never reveals an enemy.
+      if (state.bomb.carrier === actor) {
+        ctx.strokeStyle = '#ffb03a';
+        ctx.beginPath();
+        ctx.arc(px(actor.position.x), py(actor.position.z), 5.5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     // The charge, blinking once planted.
     const bomb = state.bomb;
