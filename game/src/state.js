@@ -1,8 +1,5 @@
-// The one state object. Every system reads and writes this and nothing else,
-// so the simulation, the HUD and the audio can never disagree about the game.
-// Events are a queue the simulation pushes and the frame loop drains: sounds,
-// kill feed entries and banners all come from here, never from direct calls
-// inside the simulation.
+// The one state object. Events are a queue the simulation pushes and the
+// frame loop drains, so sounds, kill feed entries and banners stay in sync.
 import { CONFIG } from './config.js';
 import { TEAM } from './palette.js';
 
@@ -56,7 +53,6 @@ export function createState(rng) {
     noise: [],
     grenades: [],
     smokes: [],
-    kills: [],
     winner: null,
     winReason: '',
     paused: false,
