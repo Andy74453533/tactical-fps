@@ -1,8 +1,6 @@
-// Rounds and the match. One machine: freeze (buy) → live → round end →
-// next freeze, until a team reaches five rounds or nine rounds are played.
-// Win checks follow the objective rules: wiping the defenders ends the
-// round at once, but wiping the attackers after a plant does not — the
-// defenders still have to defuse before the fuse runs out.
+// Rounds and the match: freeze (buy) → live → round end → next freeze,
+// until a team reaches five rounds or nine are played. Wiping the defenders
+// ends the round at once; wiping the attackers after a plant does not.
 import { CONFIG, WEAPONS, GRENADE_DEFS, EQUIPMENT, BOT_NAMES } from './config.js';
 import { TEAM } from './palette.js';
 import { PHASE, pushEvent, teamAlive, aliveActors } from './state.js';
@@ -59,10 +57,8 @@ function pickCarrier(state) {
 
 export function startRound(state) {
   state.round += 1;
-  // Team plan for this round, drawn from the seeded stream: the bots push
-  // together instead of every bot always running its own role. Split keeps
-  // the old behaviour; the executes send the whole team at one site; mid
-  // takes mid control first and the carrier then hits the plan site.
+  // Team plan for this round, drawn from the seeded stream: split keeps
+  // role pushes, executes send everyone to one site, mid takes mid first.
   const roll = state.rng.next();
   state.plan = roll < 0.45 ? 'split' : roll < 0.65 ? 'rushA' : roll < 0.85 ? 'rushB' : 'mid';
   state.planSite = state.plan === 'rushB' ? 'B' : state.plan === 'rushA' ? 'A' : state.rng.chance(0.5) ? 'A' : 'B';
@@ -357,5 +353,3 @@ export function matchWinner(state) {
   if (state.scores[TEAM.AEGIS] > state.scores[TEAM.VANGUARD]) return TEAM.AEGIS;
   return null;
 }
-
-export { siteAt };
