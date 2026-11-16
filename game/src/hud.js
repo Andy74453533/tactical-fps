@@ -5,6 +5,7 @@
 import { WEAPONS, GRENADE_DEFS, EQUIPMENT, CONFIG } from './config.js';
 import { TEAM_NAME } from './palette.js';
 import { currentWeapon } from './actors.js';
+import { createMinimap } from './minimap.js';
 
 function el(id) {
   return document.getElementById(id);
@@ -32,6 +33,8 @@ export function createHud(callbacks) {
     scoreV: el('score-vanguard'),
     scoreA: el('score-aegis'),
     roundText: el('round-text'),
+    pips: el('round-pips'),
+    minimap: el('minimap'),
     bombStatus: el('bomb-status'),
     killFeed: el('kill-feed'),
     crosshair: el('crosshair'),
@@ -64,6 +67,7 @@ export function createHud(callbacks) {
   let hitmarkerUntil = 0;
   let damageUntil = 0;
   let bannerUntil = 0;
+  const minimap = createMinimap(refs.minimap);
 
   function setText(ref, key, value) {
     if (last[key] !== value) {
@@ -90,7 +94,7 @@ export function createHud(callbacks) {
     row.append(name, priceEl, descEl);
     row.addEventListener('click', () => callbacks.onBuy(buy));
     refs.buyItems.appendChild(row);
-    buyEntries.push({ row, price, buy });
+    buyEntries.push({ row, price, buy, priceEl });
   }
   addBuyEntry('K7 Compact SMG', WEAPONS.k7.price, 'Fast, close range. 30 rounds.', { kind: 'weapon', id: 'k7' });
   addBuyEntry('M870 Breacher', WEAPONS.m870.price, 'Shotgun. Devastating up close.', { kind: 'weapon', id: 'm870' });
@@ -157,6 +161,17 @@ export function createHud(callbacks) {
     setText(refs.scoreV, 'scoreV', String(state.scores.vanguard));
     setText(refs.scoreA, 'scoreA', String(state.scores.aegis));
     setText(refs.roundText, 'round', `ROUND ${Math.min(state.round, CONFIG.match.maxRounds)} / ${CONFIG.match.maxRounds}`);
+    // Round-history pips: one dot per finished round, in team colours.
+    if (last.pips !== state.roundHistory.length) {
+      last.pips = state.roundHistory.length;
+      refs.pips.innerHTML = '';
+      for (const r of state.roundHistory) {
+        const pip = document.createElement('span');
+        pip.className = `pip ${r === 'V' ? 'v' : 'a'}`;
+        refs.pips.appendChild(pip);
+      }
+    }
+    minimap.draw(state, !player.alive && state.spectateTarget ? state.spectateTarget : player);
     setText(refs.bombStatus, 'bomb', bomb.state === 'planted' ? `● CHARGE PLANTED — SITE ${bomb.site}`
       : bomb.state === 'dropped' ? '● CHARGE DROPPED'
         : bomb.carrier ? `● CHARGE: ${bomb.carrier.name}` : '● CHARGE READY');
@@ -194,8 +209,15 @@ export function createHud(callbacks) {
   function renderBuy(player, canBuy) {
     setText(refs.buyMoney, 'buyMoney', `$${player.money}`);
     for (const entry of buyEntries) {
-      const affordable = canBuy && player.money >= entry.price;
-      entry.row.classList.toggle('disabled', !affordable);
+      // Owned or full rows say so instead of inviting a useless click: the
+      // buy rules refuse them, so the menu shows the same answer up front.
+      const owned = entry.buy.kind === 'weapon' ? player.loadout.primary?.def.id === entry.buy.id
+        : entry.buy.kind === 'armor' ? player.loadout.armor > 0
+        : entry.buy.kind === 'kit' ? player.loadout.kit
+        : player.loadout.grenades[entry.buy.id] >= 2;
+      entry.row.classList.toggle('owned', owned);
+      entry.row.classList.toggle('disabled', owned || !(canBuy && player.money >= entry.price));
+      entry.priceEl.textContent = owned ? (entry.buy.kind === 'grenade' ? 'FULL' : 'OWNED') : `$${entry.price}`;
     }
   }
 
