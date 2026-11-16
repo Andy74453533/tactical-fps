@@ -1,11 +1,9 @@
-// Actors: the player and the nine bots share one body. An actor is position,
-// velocity, health, armour, a weapon loadout and a stylised mesh built from
-// boxes and spheres in its team colours, with separate head, body and leg
-// hit meshes so damage can tell a headshot from a graze. Meshes are built
-// once per actor and only moved afterwards.
+// Actors: player and bots share one body — position, velocity, health,
+// armour, loadout, and a stylised mesh with separate head/body/leg hit
+// meshes so damage can tell a headshot from a graze.
 import * as THREE from 'three';
 import { CONFIG, WEAPONS } from './config.js';
-import { TEAM_COLOR, PALETTE } from './palette.js';
+import { TEAM_COLOR } from './palette.js';
 import { pushEvent } from './state.js';
 
 const BODY_GEO = new THREE.BoxGeometry(0.52, 0.72, 0.3);
@@ -149,8 +147,7 @@ export function resetActor(actor) {
   if (actor.bot) actor.bot.reset();
 }
 
-// Armour absorbs half the damage and loses one point per two damage absorbed,
-// the way a vest should: it stretches a life, it never makes one endless.
+// Armour absorbs half the damage and loses one point per two absorbed.
 export function damageActor(state, victim, rawDamage, part, attacker, isExplosion = false) {
   if (!victim.alive) return 0;
   let damage = rawDamage;
@@ -172,7 +169,7 @@ export function damageActor(state, victim, rawDamage, part, attacker, isExplosio
       attacker.money = Math.min(CONFIG.match.maxMoney, attacker.money + CONFIG.economy.killReward);
     }
     victim.deaths += 1;
-    pushEvent(state, { type: 'kill', victim, attacker, part, isExplosion });
+    pushEvent(state, { type: 'kill', victim, attacker, part, damage, isExplosion });
     if (state.bomb.carrier === victim) {
       state.bomb.state = 'dropped';
       state.bomb.carrier = null;
@@ -186,8 +183,7 @@ export function damageActor(state, victim, rawDamage, part, attacker, isExplosio
   return damage;
 }
 
-// Moves the visible mesh onto the simulated body. Bots lean into their walk
-// and bob; the dead stay where they fell.
+// Moves the visible mesh onto the simulated body. Bots lean and bob.
 export function syncMesh(actor, dt) {
   const mesh = actor.mesh;
   if (!actor.alive) return;
@@ -210,8 +206,4 @@ export function syncMesh(actor, dt) {
 export function eyePosition(actor, out) {
   out.set(actor.position.x, actor.position.y + actor.eye, actor.position.z);
   return out;
-}
-
-export function actorColor(actor) {
-  return actor.team === 'vanguard' ? PALETTE.vanguard : PALETTE.aegis;
 }
