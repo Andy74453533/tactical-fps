@@ -71,6 +71,11 @@
   #hitmarker i:nth-child(3) { transform: translate(-13px, 7px) rotate(-45deg); }
   #hitmarker i:nth-child(4) { transform: translate(2px, 7px) rotate(45deg); }
   #hitmarker.headshot i { background: #ff5a4a; }
+  #dmg-nums { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  #dmg-nums span { position: absolute; font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 1px 4px #000; opacity: 0; }
+  #dmg-nums span.head { color: #ff5a4a; font-size: 18px; }
+  #dmg-nums span.pop { animation: dmg-float 0.7s ease-out forwards; }
+  @keyframes dmg-float { 0% { opacity: 1; margin-top: 0; } 100% { opacity: 0; margin-top: -26px; } }
   #damage-dir {
     position: absolute; left: 50%; top: 50%; width: 110px; height: 110px;
     transform: translate(-50%, -50%); opacity: 0; pointer-events: none;
@@ -191,6 +196,7 @@
   <div id="kill-feed"></div>
   <div id="crosshair"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="dot"></i></div>
   <div id="hitmarker"><i></i><i></i><i></i><i></i></div>
+  <div id="dmg-nums"></div>
   <div id="damage-dir"></div>
   <div id="banner"><div id="banner-title"></div><div id="banner-sub"></div></div>
   <div id="center-msg"></div>
