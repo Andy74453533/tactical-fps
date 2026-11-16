@@ -1,7 +1,6 @@
-// HUD: every DOM element the player reads, updated from the game state once
-// per frame, with writes skipped when nothing changed. The buy menu, the
-// scoreboard, the menus and the banners all live here; the game logic only
-// calls these methods and never touches the DOM itself.
+// HUD: every DOM element the player reads, updated from state once per
+// frame with writes skipped when nothing changed. Game logic never touches
+// the DOM itself.
 import { WEAPONS, GRENADE_DEFS, EQUIPMENT, CONFIG } from './config.js';
 import { TEAM_NAME } from './palette.js';
 import { currentWeapon } from './actors.js';
@@ -39,6 +38,7 @@ export function createHud(callbacks) {
     killFeed: el('kill-feed'),
     crosshair: el('crosshair'),
     hitmarker: el('hitmarker'),
+    dmgNums: el('dmg-nums'),
     damageDir: el('damage-dir'),
     vignette: el('vignette'),
     flashOverlay: el('flash-overlay'),
@@ -81,7 +81,6 @@ export function createHud(callbacks) {
   function addBuyEntry(label, price, desc, buy) {
     const row = document.createElement('button');
     row.className = 'buy-item';
-    row.innerHTML = '';
     const name = document.createElement('span');
     name.className = 'buy-name';
     name.textContent = label;
@@ -125,6 +124,34 @@ export function createHud(callbacks) {
     setTimeout(() => row.remove(), 6000);
   }
 
+  // --- Floating damage numbers -------------------------------------------
+  // A pool of 8 spans, reused: each hit shows the actual HP damage dealt,
+  // offset around the crosshair in a fixed cycle so bursts stay readable.
+  const dmgPool = [];
+  let dmgCycle = 0;
+  function showDamage(damage, headshot) {
+    let num = dmgPool.find((n) => !n.busy);
+    if (!num) {
+      if (dmgPool.length >= 8) return;
+      num = { el: document.createElement('span'), busy: false };
+      refs.dmgNums.appendChild(num.el);
+      dmgPool.push(num);
+    }
+    const offs = [[-26, -34], [18, -40], [-8, -52], [28, -28], [-34, -20], [8, -58]];
+    const o = offs[dmgCycle++ % offs.length];
+    num.el.style.left = `${o[0]}px`;
+    num.el.style.top = `${o[1]}px`;
+    num.el.textContent = String(Math.round(damage));
+    num.el.className = headshot ? 'head' : '';
+    void num.el.offsetWidth;
+    num.el.classList.add('pop');
+    num.busy = true;
+    setTimeout(() => {
+      num.el.classList.remove('pop');
+      num.busy = false;
+    }, 700);
+  }
+
   function showBanner(title, sub, cls, seconds) {
     refs.bannerTitle.textContent = title;
     refs.bannerSub.textContent = sub || '';
@@ -145,6 +172,7 @@ export function createHud(callbacks) {
     // Weapon.
     const weapon = currentWeapon(player.loadout);
     setText(refs.ammoMag, 'mag', String(weapon.mag));
+    refs.ammoMag.style.color = weapon.mag === 0 ? '#ff6a55' : weapon.mag <= weapon.def.mag / 4 ? '#f0a832' : '';
     setText(refs.ammoReserve, 'reserve', String(weapon.reserve));
     setText(refs.weaponName, 'wname', weapon.def.name);
     const grenades = player.loadout.grenades;
@@ -203,14 +231,12 @@ export function createHud(callbacks) {
     } else {
       refs.spectate.style.display = 'none';
     }
-    void dt;
   }
 
   function renderBuy(player, canBuy) {
     setText(refs.buyMoney, 'buyMoney', `$${player.money}`);
     for (const entry of buyEntries) {
-      // Owned or full rows say so instead of inviting a useless click: the
-      // buy rules refuse them, so the menu shows the same answer up front.
+      // Owned/full rows say so up front: the buy rules refuse them anyway.
       const owned = entry.buy.kind === 'weapon' ? player.loadout.primary?.def.id === entry.buy.id
         : entry.buy.kind === 'armor' ? player.loadout.armor > 0
         : entry.buy.kind === 'kit' ? player.loadout.kit
@@ -249,6 +275,7 @@ export function createHud(callbacks) {
     renderScoreboard,
     addKill,
     showBanner,
+    showDamage,
     showHitmarker(headshot) {
       hitmarkerUntil = performance.now() / 1000 + 0.12;
       refs.hitmarker.classList.toggle('headshot', Boolean(headshot));
