@@ -1,6 +1,5 @@
-// Seeded randomness. Every gameplay roll in DUSKLINE goes through one of these
-// streams so a seeded run (screenshots, replays) is deterministic. Rendering
-// flair that must not affect the simulation uses its own stream.
+// Seeded randomness. Every gameplay roll goes through one of these streams
+// so a seeded run is deterministic.
 export function mulberry32(seed) {
   let a = seed | 0;
   return function random() {
@@ -20,9 +19,6 @@ export function makeRng(seed) {
     },
     int(min, max) {
       return Math.floor(min + next() * (max - min + 1));
-    },
-    pick(list) {
-      return list[Math.floor(next() * list.length)];
     },
     chance(p) {
       return next() < p;
