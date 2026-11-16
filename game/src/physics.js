@@ -1,7 +1,5 @@
-// Collision and line-of-sight. The map is a list of axis-aligned boxes; every
-// mover is an axis-aligned box too, resolved one axis at a time so a wall
-// never swallows an actor. Line of sight is a slab test against the same
-// boxes, which keeps bot vision cheap and allocation-free.
+// Collision and line-of-sight. The map is axis-aligned boxes; every mover
+// is a box too, resolved one axis at a time. Sight is a slab test.
 import * as THREE from 'three';
 
 const probe = new THREE.Box3();
@@ -15,13 +13,8 @@ function overlapsBox(x, y, z, radius, height, lift, colliders) {
   return null;
 }
 
-export function bodyOverlaps(x, y, z, radius, height, colliders) {
-  return overlapsBox(x, y, z, radius, height, 0.02, colliders) !== null;
-}
-
-// Moves position by velocity * dt with gravity handled by the caller through
-// velocity.y. Returns true when the actor is standing on something. The
-// caller owns velocity; this function only resolves contacts.
+// Moves position by velocity * dt; gravity comes through velocity.y.
+// Returns true when standing on something. The caller owns velocity.
 export function slideMove(position, velocity, dt, radius, height, colliders) {
   const nextX = position.x + velocity.x * dt;
   if (!overlapsBox(nextX, position.y, position.z, radius, height, 0.04, colliders)) {
@@ -56,8 +49,7 @@ export function slideMove(position, velocity, dt, radius, height, colliders) {
   return onGround;
 }
 
-// True when the segment a->b crosses any collider. Used for sight checks and
-// for deciding whether an explosion's blast reaches an actor.
+// True when the segment a->b crosses any collider.
 export function segmentBlocked(ax, ay, az, bx, by, bz, colliders) {
   const dx = bx - ax;
   const dy = by - ay;
@@ -101,9 +93,7 @@ export function segmentBlocked(ax, ay, az, bx, by, bz, colliders) {
   return false;
 }
 
-// True when the segment passes through any smoke cloud. Smoke is a list of
-// {x, y, z, radius}; a segment counts as blocked when it comes within a
-// cloud's radius, which is how a smoke wall hides movement.
+// True when the segment passes within any smoke cloud's radius.
 export function segmentSmoked(ax, ay, az, bx, by, bz, clouds) {
   for (let i = 0; i < clouds.length; i += 1) {
     const c = clouds[i];
@@ -127,8 +117,7 @@ export function distance2D(ax, az, bx, bz) {
   return Math.sqrt(dx * dx + dz * dz);
 }
 
-// Angle in [-PI, PI] between two headings, for turning an actor toward a
-// target along the shortest arc.
+// Angle in [-PI, PI] between two headings, along the shortest arc.
 export function angleDelta(from, to) {
   let d = to - from;
   while (d > Math.PI) d -= Math.PI * 2;
