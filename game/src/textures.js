@@ -1,6 +1,5 @@
 // Procedural textures, painted on canvases at load: no image files, no
-// network. Each returns a THREE.CanvasTexture with repeat wrapping; the map
-// reuses a handful of them across all its geometry.
+// network. The map reuses a handful of them across all its geometry.
 import * as THREE from 'three';
 import { makeRng } from './rng.js';
 
