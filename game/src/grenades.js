@@ -1,7 +1,5 @@
-// Grenades: a thrown charge with gravity, bounces off the map's boxes, and a
-// fuse. Frag kills in a radius through line of sight, flash blinds anyone
-// looking at it, smoke lays a cloud that blocks sight for both teams. Bots
-// never throw; they react to all three.
+// Grenades: a thrown charge with gravity, bounces, and a fuse. Frag kills
+// in a radius through line of sight, flash blinds, smoke blocks sight.
 import * as THREE from 'three';
 import { GRENADE_DEFS } from './config.js';
 import { pushEvent } from './state.js';
@@ -31,7 +29,6 @@ export function throwGrenade(state, scene, actor, kind, origin, dir) {
     rest: false,
   };
   state.grenades.push(grenade);
-  pushEvent(state, { type: 'throw', x: origin.x, y: origin.y, z: origin.z });
   return grenade;
 }
 
@@ -130,7 +127,6 @@ function detonate(state, g) {
       const strength = (1 - dist / g.def.radius) * (facing > 0 ? 1 : 0.45);
       if (strength > 0.15) {
         actor.blind = Math.max(actor.blind, strength * 3.2);
-        if (actor.isPlayer) pushEvent(state, { type: 'blinded', strength });
       }
     }
   } else {
